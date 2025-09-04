@@ -17,5 +17,8 @@
     <PackageReference Include="Mscc.GenerativeAI" Version="2.8.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Twinium\Twinium.Web\Twinium.Web.csproj" />
+  </ItemGroup>
 
 </Project>
