@@ -77,6 +77,8 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
     #region OpenAI Image Generation
     public enum OpenAIImageModel
     {
+        [Description("gpt-image-1.5")]
+        GPTImage15, // OpenAI's image generation model
         [Description("gpt-image-1")]
         GPTImage1, // OpenAI's image generation model
         [Description("dall-e-2")]
@@ -95,11 +97,11 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
             logger.LogInformation("Starting OpenAI image generation for: {Name}", name);
             ImageGenerationOptions op = new()
             {
-                Quality = model == OpenAIImageModel.GPTImage1
+                Quality = model == OpenAIImageModel.GPTImage1 || model == OpenAIImageModel.GPTImage15
                     ? new GeneratedImageQuality(quality.ToString().ToLower())
                     : new GeneratedImageQuality("hd"),
 
-                Size = model == OpenAIImageModel.GPTImage1
+                Size = model == OpenAIImageModel.GPTImage1 || model == OpenAIImageModel.GPTImage15
                     ? new GeneratedImageSize(1536, 1024)
                     : new GeneratedImageSize(1792, 1024)
             };
@@ -149,11 +151,11 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
             client = new(modelName, AIServicesExtensions.OpenApiKey);
             content.Add(new StringContent(modelName), "model");
 
-            content.Add(model == OpenAIImageModel.GPTImage1
+            content.Add(model == OpenAIImageModel.GPTImage1 || model == OpenAIImageModel.GPTImage15
                 ? new StringContent("1536x1024")
                 : new StringContent("1792x1024")
                 , "size");
-            if (model == OpenAIImageModel.GPTImage1)
+            if (model == OpenAIImageModel.GPTImage1 || model == OpenAIImageModel.GPTImage15)
             {
                 content.Add(new StringContent(quality.ToString().ToLower()), "quality");
             }
