@@ -1,4 +1,6 @@
-﻿namespace TechnoartSDK.Models;
+﻿using Newtonsoft.Json;
+
+namespace TechnoartSDK.Models;
 
 public record RepositoryModel
 {
