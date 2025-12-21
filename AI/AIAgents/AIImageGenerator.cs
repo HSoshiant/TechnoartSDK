@@ -179,8 +179,10 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
 
             logger.LogInformation("Starting OpenAI image generation for: {Name}", name);
             //var res = c.GenerateImageEdit(name, text2ImagePrompt);
-            var result = client.GenerateImageEdits(bc, content.Headers.ContentType.ToString());
-            OpenAI.Images.GeneratedImage img = null;// ((GeneratedImageCollection) result).FirstOrDefault();
+            var result = await client.GenerateImageEditsAsync(bc, content.Headers.ContentType.ToString());
+#pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            OpenAI.Images.GeneratedImage img = ((GeneratedImageCollection) result).FirstOrDefault();
+#pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             var imgModel = new ImageModel
             {
                 Data = Convert.ToBase64String(img.ImageBytes),
