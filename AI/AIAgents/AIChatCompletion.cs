@@ -35,7 +35,7 @@ public class AIChatCompletion(Kernel kernel, ILogger logger)
             AIServicesExtensions.OpenAIServiceMini or
             AIServicesExtensions.OpenAIService => new OpenAIPromptExecutionSettings()
             {
-                Temperature = 0.8f,
+                Temperature = 1f,
                 MaxTokens = maxToken ?? 32768,
                 ResponseFormat = typeof(T) == typeof(string) ? null : typeof(T),
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),

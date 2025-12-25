@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Logging;
 using Mscc.GenerativeAI;
+using Mscc.GenerativeAI.Types;
 using OpenAI.Images;
 using TechnoartSDK.Extensions;
 using TechnoartSDK.Models;
@@ -18,7 +19,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
         var googleAI = new GoogleAI(apiKey: AIServicesExtensions.GoogleApiKey);
         //var vertextAI = new VertexAI(apiKey: _APIKEY);
 
-        var vModel = googleAI.GenerativeModel(model: Mscc.GenerativeAI.Model.Imagen3);
+        var vModel = googleAI.GenerativeModel(model: Model.Imagen3);
         var res = await vModel.GenerateImages(text2ImagePrompt, aspectRatio: aspectRatio, personGeneration: PersonGeneration.AllowAll);
         try
         {
@@ -37,7 +38,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
     {
         logger.LogInformation("Starting Gemini image generation for: {Name}", name);
         var googleAI = new GoogleAI(apiKey: AIServicesExtensions.GoogleApiKey);
-        var vModel = googleAI.GenerativeModel(model: Mscc.GenerativeAI.Model.Gemini20FlashImageGeneration);
+        var vModel = googleAI.GenerativeModel(model: Model.Gemini25FlashImage);
 
         var parts = new List<IPart>(){
             new TextData
@@ -57,7 +58,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
             parts
             , new()
             {
-                ResponseModalities = [Mscc.GenerativeAI.ResponseModality.Image, Mscc.GenerativeAI.ResponseModality.Text],
+                ResponseModalities = [ResponseModality.Image, ResponseModality.Text],
             });
         try
         {

@@ -26,7 +26,7 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
         Func<T, List<string>> checkErrors = null!,
         string terminationText = "Approved") where T : class
     {
-        logger.LogInformation("Generating writer review for {name}", operationName);
+        logger.LogInformation($"Generating writer review for {operationName} with \"{writerServiceName}\" as writer and \"{reviewerServiceName}\" as reviewer ");
 
         var writerChatCompletionService = kernel.GetRequiredService<IChatCompletionService>(writerServiceName);
         var reviewerChatCompletionService = kernel.GetRequiredService<IChatCompletionService>(reviewerServiceName);
@@ -58,7 +58,12 @@ Provide at least one review and then if the writer's response is satisfactory, r
                 Temperature = 0.8,
                 MaxTokens = int.MaxValue,
                 ResponseMimeType = typeof(T) == typeof(string) ? "text/plain" : "application/json",
-                ResponseSchema = typeof(T) == typeof(string) ? null : typeof(T)
+                ResponseSchema = typeof(T) == typeof(string) ? null : typeof(T),
+                ThinkingConfig = new GeminiThinkingConfig()
+                {
+                    IncludeThoughts = false,
+                    ThinkingLevel = "low"
+                }
             },
             AIServicesExtensions.OpenAIServiceMini or
             AIServicesExtensions.OpenAIService => new OpenAIPromptExecutionSettings()
@@ -77,7 +82,7 @@ Provide at least one review and then if the writer's response is satisfactory, r
             AIServicesExtensions.GoogleAIService => new GeminiPromptExecutionSettings()
             {
                 Temperature = 0.8,
-                MaxTokens = int.MaxValue,
+                MaxTokens = 32768,
             },
             AIServicesExtensions.OpenAIServiceMini or
             AIServicesExtensions.OpenAIService => new OpenAIPromptExecutionSettings()

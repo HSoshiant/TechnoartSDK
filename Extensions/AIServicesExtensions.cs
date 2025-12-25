@@ -23,27 +23,27 @@ public static class AIServicesExtensions
         services.AddKeyedSingleton<IChatCompletionService>(OpenAIService, (sp, _) =>
             new OpenAIChatCompletionService(
                 //"gpt-4.1-mini-2025-04-14",
-                "gpt-4.1",
+                "gpt-5.2",
                 OpenApiKey,
                 httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService")));
 
         services.AddKeyedSingleton<IChatCompletionService>(OpenAIServiceMini, (sp, _) =>
             new OpenAIChatCompletionService(
                 //"gpt-4.1-mini-2025-04-14",
-                "gpt-4.1-mini",
+                "gpt-5-mini",
                 OpenApiKey,
                 httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService")));
 
         services.AddKeyedSingleton<IChatCompletionService>(GoogleAIService, (sp, _) =>
             new GoogleAIGeminiChatCompletionService(
-                "gemini-2.5-flash",
+                "gemini-3-flash-preview",
                 apiKey: GoogleApiKey,
                 apiVersion: GoogleAIVersion.V1_Beta,
                 httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService")));
 
         services.AddKeyedSingleton<IChatCompletionService>(GoogleAIServicePro, (sp, _) =>
             new GoogleAIGeminiChatCompletionService(
-                "gemini-2.5-pro",
+                "gemini-3-pro-preview",
                 apiKey: GoogleApiKey,
                 apiVersion: GoogleAIVersion.V1_Beta,
                 httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService")));
