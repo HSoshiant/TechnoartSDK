@@ -17,6 +17,30 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
     #endregion Constructors
 
     #region Methods
+    public async Task GenerateWriterReviewAsync(
+        Type T,
+        string operationName,
+        string writerInstructions, string writerServiceName,
+        string reviewerInstructions, string reviewerServiceName, string reviewerPrompt,
+        string? inputText = null, int maxRound = 1,
+        ChatHistory? chatHistory = null,
+        Func<Type, List<string>> checkErrors = null!,
+        string terminationText = "Approved")
+    {
+        var method = typeof(WriterReviewerAIAgents).GetMethod(nameof(GenerateWriterReviewAsync))!;
+        var genericMethod = method.MakeGenericMethod(T);
+        await (Task)genericMethod.Invoke(this, [
+            operationName,
+            writerInstructions, writerServiceName,
+            reviewerInstructions, reviewerServiceName, reviewerPrompt,
+            inputText, maxRound,
+            chatHistory,
+            checkErrors,
+            terminationText
+        ])!;
+
+    }
+
     public async Task<T> GenerateWriterReviewAsync<T>(
         string operationName,
         string writerInstructions, string writerServiceName,
@@ -24,7 +48,8 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
         string? inputText = null, int maxRound = 1,
         ChatHistory? chatHistory = null,
         Func<T, List<string>> checkErrors = null!,
-        string terminationText = "Approved") where T : class
+        string terminationText = "Approved",
+        JsonElement? responseSchema = null) where T : class
     {
         logger.LogInformation($"Generating writer review for {operationName} with \"{writerServiceName}\" as writer and \"{reviewerServiceName}\" as reviewer ");
 
@@ -70,7 +95,9 @@ Provide at least one review and then if the writer's response is satisfactory, r
             {
                 Temperature = 0.8f,
                 MaxTokens = 32768,
-                ResponseFormat = typeof(T) == typeof(string) ? null : typeof(T)
+                ResponseFormat = responseSchema is not null
+                    ? responseSchema
+                    : typeof(T) == typeof(string) ? null : typeof(T)
             },
             _ => throw new ArgumentException($"Unsupported service name: {writerServiceName}", nameof(writerServiceName)),
         };
