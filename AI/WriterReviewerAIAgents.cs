@@ -93,11 +93,12 @@ Provide at least one review and then if the writer's response is satisfactory, r
             AIServicesExtensions.OpenAIServiceMini or
             AIServicesExtensions.OpenAIService => new OpenAIPromptExecutionSettings()
             {
-                Temperature = 0.8f,
+                Temperature = 1,
                 MaxTokens = 32768,
                 ResponseFormat = responseSchema is not null
                     ? responseSchema
-                    : typeof(T) == typeof(string) ? null : typeof(T)
+                    : typeof(T) == typeof(string) ? null : typeof(T),
+                ReasoningEffort = "medium"
             },
             _ => throw new ArgumentException($"Unsupported service name: {writerServiceName}", nameof(writerServiceName)),
         };

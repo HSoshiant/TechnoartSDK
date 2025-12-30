@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
@@ -9,33 +9,50 @@ namespace TechnoartSDK.Utils;
 
 public static class JsonUtilities
 {
-    public static JsonElement GetJsonSchema<T,K>(List<string> ExcludeProps)
+    public static JsonElement GetJsonSchema<T, K>(List<string>? excludedProps = null, List<string>? includedProps = null)
     {
-        var js = new JsonSerializerOptions()
+        if ((excludedProps is null) == (includedProps is null))
+        {
+            throw new ArgumentException("Either excludedProps or includedProps must be provided, but not both.");
+        }
+
+        var names = (includedProps ?? excludedProps)!;
+
+        var js = new JsonSerializerOptions
         {
             TypeInfoResolver = new DefaultJsonTypeInfoResolver
             {
                 Modifiers =
+                {
+                    typeInfo =>
                     {
-                        typeInfo =>
-                        {
-                            if (typeInfo.Type != typeof(K)) return;
+                        if (typeInfo.Type != typeof(K)) return;
 
-                            foreach (var propName in ExcludeProps)
+                        if (includedProps is not null)
+                        {
+                            foreach (var prop in typeInfo.Properties.ToList())
                             {
-                                typeInfo.Properties.Remove(
-                                    typeInfo.Properties.First(p=>
-                                    p.Name.Equals(
-                                        propName,
-                                        StringComparison.InvariantCultureIgnoreCase)));
+                                if (!names.Contains(prop.Name, StringComparer.InvariantCultureIgnoreCase))
+                                {
+                                    typeInfo.Properties.Remove(prop);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach (var prop in typeInfo.Properties.ToList())
+                            {
+                                if (names.Contains(prop.Name, StringComparer.InvariantCultureIgnoreCase))
+                                {
+                                    typeInfo.Properties.Remove(prop);
+                                }
                             }
                         }
                     }
+                }
             }
         };
-        var res = AIJsonUtilities.CreateJsonSchema(
-            typeof(T),
-            serializerOptions: js);
-        return res;
+
+        return AIJsonUtilities.CreateJsonSchema(typeof(T), serializerOptions: js);
     }
 }
