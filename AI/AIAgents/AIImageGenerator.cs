@@ -142,7 +142,9 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
         return null;
     }
 
-    public async Task<ImageModel?> CreateOpenAIImageByRefrence(string name, string text2ImagePrompt, OpenAIImageModel model, SDKEnums.ImageQualityType quality, params (string Name, ImageModel Image)[] imagesData)
+    public async Task<ImageModel?> CreateOpenAIImageByRefrence(string name, string text2ImagePrompt, 
+        OpenAIImageModel model, SDKEnums.ImageQualityType quality, 
+        params (string Name, ImageModel Image)[] imagesData)
     {
         try
         {
@@ -177,7 +179,6 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
 
 
             BC bc = new(content);
-
             logger.LogInformation("Starting OpenAI image generation for: {Name}", name);
             //var res = c.GenerateImageEdit(name, text2ImagePrompt);
             var result = await client.GenerateImageEditsAsync(bc, content.Headers.ContentType.ToString());
