@@ -40,3 +40,9 @@ var result = await wrAgents.GenerateWriterReviewAsync<T>(
 - Constructor inject `Kernel` and `ILogger` — no other dependencies.
 - SKEXP pragma suppressions are expected; always add a `//` comment explaining which experimental feature is being used.
 - No nested classes — every support type gets its own file.
+
+## Formatting
+
+- **Every `if`, `else`, `for`, `foreach`, `while`, and `using` block must use curly braces `{ }`, even for single-statement bodies.**
+- The body must always be on its own line — never on the same line as the condition.
+- Guard-clause `return`/`throw` statements follow the same rule: brace + new line.

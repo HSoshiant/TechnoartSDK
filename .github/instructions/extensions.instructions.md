@@ -29,3 +29,9 @@ applyTo: "Extensions/**"
 - `AIServicesExtensions.AddSemanticKernel()` is the single entry point for wiring all AI services in a consuming project.
 - Do not hardcode API keys in new code — use configuration or the existing constants in `AIServicesExtensions` until a secrets manager is wired.
 - No nested classes — every support type gets its own file.
+
+## Formatting
+
+- **Every `if`, `else`, `for`, `foreach`, `while`, and `using` block must use curly braces `{ }`, even for single-statement bodies.**
+- The body must always be on its own line — never on the same line as the condition.
+- Guard-clause `return`/`throw` statements follow the same rule: brace + new line.

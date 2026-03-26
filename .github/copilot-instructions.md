@@ -60,3 +60,8 @@ TechnoartSDK/
 - All AI generation uses the `WriterReviewerAIAgents` pattern (writer + optional reviewer).
 - Writer uses OpenAI; reviewer uses Google AI.
 - See `AI/` folder instructions for details.
+
+### Brace & Formatting Rules
+- **Every `if`, `else`, `for`, `foreach`, `while`, and `using` block must use curly braces `{ }`, even for single-statement bodies.**
+- The body must always be on its own line — never on the same line as the condition.
+- Guard-clause `return`/`throw` statements follow the same rule: brace + new line.

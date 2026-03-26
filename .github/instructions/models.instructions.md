@@ -21,3 +21,9 @@ applyTo: "Models/**"
 - No business logic in model classes — pure data containers only.
 - No nested classes — every type gets its own file.
 - All public properties must have `/// <summary>` XML doc comments if their purpose is not immediately obvious from the name.
+
+## Formatting
+
+- **Every `if`, `else`, `for`, `foreach`, `while`, and `using` block must use curly braces `{ }`, even for single-statement bodies.**
+- The body must always be on its own line — never on the same line as the condition.
+- Guard-clause `return`/`throw` statements follow the same rule: brace + new line.

@@ -40,3 +40,9 @@ This means the body is logged **after** the consumer has finished reading — no
 4. Register as transient in the consuming project.
 5. Add a `/// <summary>` XML doc comment to the class.
 6. Update this instruction file.
+
+## Formatting
+
+- **Every `if`, `else`, `for`, `foreach`, `while`, and `using` block must use curly braces `{ }`, even for single-statement bodies.**
+- The body must always be on its own line — never on the same line as the condition.
+- Guard-clause `return`/`throw` statements follow the same rule: brace + new line.
