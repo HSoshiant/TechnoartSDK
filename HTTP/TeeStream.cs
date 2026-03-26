@@ -9,6 +9,8 @@ namespace TechnoartSDK.HTTP;
 /// </summary>
 public sealed class TeeStream(Stream inner, Action<string> onDisposed) : Stream
 {
+    #region Fields
+
     private readonly MemoryStream _buffer = new();
 
     public override bool CanRead  => inner.CanRead;
@@ -20,6 +22,10 @@ public sealed class TeeStream(Stream inner, Action<string> onDisposed) : Stream
         get => throw new NotSupportedException();
         set => throw new NotSupportedException();
     }
+
+    #endregion Fields
+
+    #region Methods
 
     public override int Read(byte[] buffer, int offset, int count)
     {
@@ -59,4 +65,6 @@ public sealed class TeeStream(Stream inner, Action<string> onDisposed) : Stream
         }
         base.Dispose(disposing);
     }
+
+    #endregion Methods
 }

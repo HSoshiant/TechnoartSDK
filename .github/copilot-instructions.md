@@ -34,7 +34,9 @@ TechnoartSDK/
 - Classes that are needed in more than one consuming project belong here; one-off utilities stay in the consuming project.
 
 ### Naming Rules
-- Use `#region` blocks: `Types`, `Constructors`, `Methods`, `Fields`, `Static Fields`, `Static Methods`.
+- **Any class with more than one section type must use `#region` blocks.** Only include a region for a section that actually exists. Sections must follow this exact order: `Types`, `Constructors`, `Methods`, `Fields`, `Static Fields`, `Static Methods`. Exception: model classes (simple data containers) do not need region blocks.
+- Region tags must use the exact names above with matching `#endregion` labels (e.g. `#region Static Fields` / `#endregion Static Fields`).
+- **`#region Fields`** contains all fields AND properties (private, public, or auto-properties). **`#region Methods`** contains only methods and functions — never properties.
 - **Never use nested classes.** Every class — including small helper or support types — must live in its own file.
 - File name must match the class name exactly.
 
