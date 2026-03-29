@@ -186,6 +186,8 @@ public static class AuthExtensions
                     options.ClientSecret = provider.ClientSecret;
                     options.SaveTokens = true;
                     options.CallbackPath = AuthClaimsConstants.GitHubCallbackPath;
+                    // GitHub returns avatar_url in the user info JSON — map it to the shared "picture" claim
+                    options.ClaimActions.MapJsonKey(AuthClaimsConstants.Picture, "avatar_url");
                     AttachTokenGeneration(options.Events, provider.Name, signingKey);
                 });
                 break;
