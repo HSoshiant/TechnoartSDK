@@ -14,7 +14,9 @@ namespace TechnoartSDK.HTTP;
 /// Designed for Blazor Server / SSR apps where the Web host forwards a self-issued JWT
 /// (generated after OAuth sign-in) to a downstream API.
 /// When the JWT is expired or near expiry, it is automatically regenerated from the
-/// cookie's claims so the user does not have to re-authenticate.
+/// cookie's claims. The refreshed token is cached in <see cref="HttpContext.Items"/>
+/// because Blazor Server circuits reuse the initial HTTP context whose response has
+/// already started (so cookie writes via SignInAsync are not possible).
 /// </summary>
 public class BearerTokenForwardingHandler(
     IHttpContextAccessor httpContextAccessor,
@@ -28,6 +30,9 @@ public class BearerTokenForwardingHandler(
 
     private static readonly JwtSecurityTokenHandler TokenHandler = new();
 
+    // Key used to cache the refreshed token in HttpContext.Items for the circuit's lifetime
+    private const string CachedTokenKey = "BearerTokenForwarding.CachedApiToken";
+
     #endregion Fields
 
     #region Methods
@@ -38,12 +43,14 @@ public class BearerTokenForwardingHandler(
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext is not null)
         {
-            var token = await httpContext.GetTokenAsync(AuthClaimsConstants.ApiTokenName);
+            // Check the in-memory cache first (refreshed token from earlier in this circuit)
+            var token = httpContext.Items[CachedTokenKey] as string
+                ?? await httpContext.GetTokenAsync(AuthClaimsConstants.ApiTokenName);
 
             // Refresh the token if it's missing, expired, or about to expire
             if (string.IsNullOrEmpty(token) || IsExpiredOrNearExpiry(token))
             {
-                token = await TryRefreshTokenAsync(httpContext, token);
+                token = TryRefreshToken(httpContext, token);
             }
 
             if (!string.IsNullOrEmpty(token))
@@ -79,10 +86,11 @@ public class BearerTokenForwardingHandler(
     }
 
     /// <summary>
-    /// Regenerates the self-issued JWT from the current user's cookie claims and updates
-    /// the stored authentication token so subsequent requests use the fresh token.
+    /// Regenerates the self-issued JWT from the current user's cookie claims and caches
+    /// it in <see cref="HttpContext.Items"/>. This avoids calling SignInAsync which fails
+    /// in Blazor Server because the response (WebSocket upgrade) has already started.
     /// </summary>
-    private async Task<string?> TryRefreshTokenAsync(HttpContext httpContext, string? oldToken)
+    private string? TryRefreshToken(HttpContext httpContext, string? oldToken)
     {
         try
         {
@@ -101,25 +109,8 @@ public class BearerTokenForwardingHandler(
 
             var newToken = AuthExtensions.GenerateApiToken(user.Claims, signingKey);
 
-            // Update the stored token in authentication properties so it persists across requests
-            var authResult = await httpContext.AuthenticateAsync();
-            if (authResult.Succeeded && authResult.Properties is not null)
-            {
-                var tokens = authResult.Properties.GetTokens().ToList();
-                var existing = tokens.Find(t => t.Name == AuthClaimsConstants.ApiTokenName);
-                if (existing is not null)
-                {
-                    existing.Value = newToken;
-                }
-                else
-                {
-                    tokens.Add(new AuthenticationToken { Name = AuthClaimsConstants.ApiTokenName, Value = newToken });
-                }
-
-                authResult.Properties.StoreTokens(tokens);
-                // Re-sign-in to persist the updated properties into the cookie
-                await httpContext.SignInAsync(authResult.Principal!, authResult.Properties);
-            }
+            // Cache in HttpContext.Items — lives for the Blazor circuit's lifetime
+            httpContext.Items[CachedTokenKey] = newToken;
 
             logger.LogInformation("Refreshed expired API token for user {UserId}",
                 user.FindFirst(AuthClaimsConstants.Subject)?.Value);
