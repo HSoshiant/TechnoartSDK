@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
@@ -7,6 +8,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Google;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using TechnoartSDK.Extensions;
+using TechnoartSDK.Models;
 
 namespace TechnoartSDK.AI;
 #pragma warning disable SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
@@ -18,6 +20,10 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
     #endregion Constructors
 
     #region Methods
+    /// <summary>
+    /// Runs a writer-reviewer agent exchange and returns the writer's final output deserialized as <typeparamref name="T"/>.
+    /// Reports progress through <paramref name="progress"/> when provided.
+    /// </summary>
     public async Task<T> GenerateWriterReviewAsync<T>(
         string operationName,
         string writerInstructions, string writerServiceName,
@@ -26,7 +32,8 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
         ChatHistory? chatHistory = null,
         Func<T, List<string>> checkErrors = null!,
         string terminationText = "Approved",
-        JsonElement? responseSchema = null) where T : class
+        JsonElement? responseSchema = null,
+        IProgress<OperationProgress>? progress = null) where T : class
     {
         logger.LogInformation("Generating writer review for {OperationName} with \"{WriterService}\" as writer and \"{ReviewerService}\" as reviewer",
             operationName, writerServiceName, reviewerServiceName);
@@ -47,8 +54,41 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
             Arguments = new KernelArguments(BuildReviewerSettings(reviewerServiceName))
         };
 
+        string lastWriterOutput = string.Empty;
+        string? currentAuthor = null;
+        var buffer = new StringBuilder();
+
+        // Flushes accumulated content for the current agent
+        void FlushAgent()
+        {
+            if (currentAuthor is null)
+            {
+                return;
+            }
+
+            var content = buffer.ToString();
+            logger.LogInformation("{OperationName}: Agent '{Agent}' responded", operationName, currentAuthor);
+            if (currentAuthor == writerAgent.Name)
+            {
+                lastWriterOutput = content;
+            }
+
+            progress?.Report(new OperationProgress
+            {
+                Type = OperationProgressType.StepCompleted,
+                StepName = currentAuthor,
+                Content = content
+            });
+        }
+
         var initialMessages = BuildInitialMessages(chatHistory, inputText);
         var extraMessages = new List<ChatMessageContent>();
+
+        progress?.Report(new OperationProgress
+        {
+            Type = OperationProgressType.Started,
+            StepName = operationName
+        });
 
         while (true)
         {
@@ -67,13 +107,40 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
             };
             chat.AddChatMessages([.. initialMessages, .. extraMessages]);
 
-            string lastWriterOutput = string.Empty;
-            await foreach (var message in chat.InvokeAsync())
+            // Reset per-round state
+            lastWriterOutput = string.Empty;
+            currentAuthor = null;
+            buffer.Clear();
+
+            // Stream token-by-token from the agent group chat
+            await foreach (var chunk in chat.InvokeStreamingAsync())
             {
-                logger.LogInformation("{OperationName}: Agent '{Agent}' responded", operationName, message.AuthorName);
-                if (message.AuthorName == writerAgent.Name)
-                    lastWriterOutput = message.Content ?? string.Empty;
+                // Agent switch — flush previous, signal new
+                if (chunk.AuthorName != currentAuthor)
+                {
+                    FlushAgent();
+                    currentAuthor = chunk.AuthorName;
+                    buffer.Clear();
+                    progress?.Report(new OperationProgress
+                    {
+                        Type = OperationProgressType.StepStarted,
+                        StepName = currentAuthor ?? operationName
+                    });
+                }
+
+                if (chunk.Content is { } text)
+                {
+                    buffer.Append(text);
+                    progress?.Report(new OperationProgress
+                    {
+                        Type = OperationProgressType.Info,
+                        StepName = currentAuthor ?? operationName,
+                        Content = text
+                    });
+                }
             }
+
+            FlushAgent();
 
             var response = typeof(T) == typeof(string)
                 ? lastWriterOutput as T
@@ -83,11 +150,22 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
             if ((errors?.Count ?? 0) == 0)
             {
                 logger.LogInformation("{OperationName}: Completed successfully", operationName);
+                progress?.Report(new OperationProgress
+                {
+                    Type = OperationProgressType.Completed,
+                    StepName = operationName
+                });
                 return response!;
             }
 
             var errorsStr = string.Join("\n", errors!);
             logger.LogInformation("{OperationName}: invalid result: {Errors}", operationName, errorsStr);
+            progress?.Report(new OperationProgress
+            {
+                Type = OperationProgressType.Warning,
+                StepName = operationName,
+                Content = errorsStr
+            });
             extraMessages.Add(new ChatMessageContent(AuthorRole.User, errorsStr));
         }
     }
