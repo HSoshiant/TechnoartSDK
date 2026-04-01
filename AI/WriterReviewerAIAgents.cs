@@ -16,9 +16,6 @@ namespace TechnoartSDK.AI;
 
 public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
 {
-    #region Constructors
-    #endregion Constructors
-
     #region Methods
     /// <summary>
     /// Runs a writer-reviewer agent exchange and returns the writer's final output deserialized as <typeparamref name="T"/>.
@@ -27,7 +24,7 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
     public async Task<T> GenerateWriterReviewAsync<T>(
         string operationName,
         string writerInstructions, string writerServiceName,
-        string reviewerInstructions, string reviewerServiceName, string reviewerPrompt,
+        string reviewerInstructions, string reviewerServiceName,
         string? inputText = null, int maxRound = 1,
         ChatHistory? chatHistory = null,
         Func<T, List<string>> checkErrors = null!,
@@ -171,12 +168,6 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
     }
 
     #endregion Methods
-
-    #region Fields
-    #endregion Fields
-
-    #region Static Fields
-    #endregion Static Fields
 
     #region Static Methods
     private static List<ChatMessageContent> BuildInitialMessages(ChatHistory? chatHistory, string? inputText)

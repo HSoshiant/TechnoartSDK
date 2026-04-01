@@ -18,8 +18,5 @@ public static class HttpResponseExtensions
                     yield return location;
             }
         }
-        reader.Close();
-        yield break;
-
     }
 }

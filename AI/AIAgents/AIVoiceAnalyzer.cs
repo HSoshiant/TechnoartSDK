@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using OpenAI.Audio;
+﻿using OpenAI.Audio;
 using TechnoartSDK.Extensions;
 
 namespace TechnoartSDK.AI.AIAgents;
@@ -19,7 +18,6 @@ public class AIVoiceAnalyzer
             ResponseFormat = AudioTranscriptionFormat.Verbose
 
         });
-        var json = JsonConvert.SerializeObject(transcription.Words);
         return transcription;
     }
 }
