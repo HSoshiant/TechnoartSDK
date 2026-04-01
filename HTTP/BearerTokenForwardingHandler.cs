@@ -106,7 +106,7 @@ public class BearerTokenForwardingHandler(
             if (string.IsNullOrWhiteSpace(signingKey))
             {
                 logger.LogError("Cannot refresh API token — TokenSigningKey is not configured");
-                return oldToken;
+                return null;
             }
 
             var newToken = AuthExtensions.GenerateApiToken(user.Claims, signingKey);
@@ -122,7 +122,7 @@ public class BearerTokenForwardingHandler(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to refresh API token");
-            return oldToken;
+            return null;
         }
     }
 

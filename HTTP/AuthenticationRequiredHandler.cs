@@ -19,8 +19,16 @@ public class AuthenticationRequiredHandler : DelegatingHandler
 
         if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
         {
+            // If no Bearer token was attached, the session/token expired and refresh failed.
+            // If a Bearer token WAS attached but the API still rejected it, the user is
+            // genuinely not authorised (e.g. account deleted, role revoked).
+            var reason = request.Headers.Authorization?.Scheme == "Bearer"
+                ? AuthenticationRequiredReason.NotAuthenticated
+                : AuthenticationRequiredReason.SessionExpired;
+
             throw new AuthenticationRequiredException(
-                $"API returned {(int)response.StatusCode} for {request.RequestUri}. Please sign in again.");
+                $"API returned {(int)response.StatusCode} for {request.RequestUri}. Please sign in again.",
+                reason);
         }
 
         return response;
