@@ -5,6 +5,9 @@ namespace TechnoartSDK.Models;
 /// </summary>
 public enum OperationProgressType
 {
+    /// <summary>The operation has been queued but not yet started.</summary>
+    Queued,
+
     /// <summary>The operation has started.</summary>
     Started,
 
