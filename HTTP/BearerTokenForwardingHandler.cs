@@ -41,7 +41,9 @@ public class BearerTokenForwardingHandler(
         HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var httpContext = httpContextAccessor.HttpContext;
-        if (httpContext is not null)
+
+        // Skip if the caller already set an Authorization header (e.g. during token exchange).
+        if (httpContext is not null && request.Headers.Authorization is null)
         {
             // Check the in-memory cache first (refreshed token from earlier in this circuit)
             var token = httpContext.Items[CachedTokenKey] as string

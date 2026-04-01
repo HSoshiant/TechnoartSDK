@@ -23,9 +23,6 @@ public static class AuthClaimsConstants
     /// <summary>Name of the authentication token stored in auth properties and read by the handler.</summary>
     public const string ApiTokenName = "api_token";
 
-    /// <summary>Default sign-in page path used by cookie authentication.</summary>
-    public const string SignInPath = "/auth/signin";
-
     /// <summary>Login endpoint path that initiates the OAuth challenge for a specific provider.</summary>
     public const string LoginPath = "/auth/login";
 
