@@ -12,7 +12,7 @@ namespace TechnoartSDK.AI.AIAgents;
 
 public class AIChatCompletion(Kernel kernel, ILogger logger)
 {
-    public async Task<T> Complete<T>(string operationName, string serviceName, ChatHistory? chatHistory, int? maxToken = null) where T : class
+    public async Task<T> Complete<T>(string operationName, string serviceName, ChatHistory? chatHistory, int? maxToken = null, CancellationToken ct = default) where T : class
     {
         logger.LogInformation("{OperationName}: Starting AI chat completion with service '{ServiceName}'", operationName, serviceName);
         if (chatHistory == null)
@@ -45,7 +45,7 @@ public class AIChatCompletion(Kernel kernel, ILogger logger)
 
         var localChatHistory = new ChatHistory(chatHistory);
 
-        var result = await chatCompletionService.GetChatMessageContentAsync(localChatHistory, writeExecutionSettings, kernel);
+        var result = await chatCompletionService.GetChatMessageContentAsync(localChatHistory, writeExecutionSettings, kernel, ct);
 
         var content = result.Content!;
         var respose = typeof(T) == typeof(string)

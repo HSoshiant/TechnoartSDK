@@ -12,7 +12,7 @@ namespace TechnoartSDK.AI.AIAgents;
 
 public class AIImageGenerator(ILogger<AIImageGenerator> logger)
 {
-    public async Task<ImageModel?> CreateImagen(string name, string text2ImagePrompt, ImageAspectRatio aspectRatio)
+    public async Task<ImageModel?> CreateImagen(string name, string text2ImagePrompt, ImageAspectRatio aspectRatio, CancellationToken ct = default)
     {
         logger.LogInformation("Starting image generation for character: {Name}", name);
 
@@ -20,6 +20,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
         //var vertextAI = new VertexAI(apiKey: _APIKEY);
 
         var vModel = googleAI.GenerativeModel(model: Model.Imagen3);
+        ct.ThrowIfCancellationRequested();
         var res = await vModel.GenerateImages(text2ImagePrompt, aspectRatio: aspectRatio, personGeneration: PersonGeneration.AllowAll);
         try
         {
@@ -34,7 +35,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
 
     }
 
-    public async Task<string?> CreateGeminiImage(string name, string text2ImagePrompt, string aspectRatio, params string[] imagesData)
+    public async Task<string?> CreateGeminiImage(string name, string text2ImagePrompt, string aspectRatio, CancellationToken ct = default, params string[] imagesData)
     {
         logger.LogInformation("Starting Gemini image generation for: {Name}", name);
         var googleAI = new GoogleAI(apiKey: AIServicesExtensions.GoogleApiKey);
@@ -54,6 +55,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
                 Data = img
             }));
         }
+        ct.ThrowIfCancellationRequested();
         var res = await vModel.GenerateContent(
             parts
             , new()
@@ -88,7 +90,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
         DallE3, // OpenAI's DALL-E 3 model
     }
 
-    public async Task<ImageModel?> CreateOpenAIImage(string name, string text2ImagePrompt, OpenAIImageModel model, SDKEnums.ImageQualityType quality)
+    public async Task<ImageModel?> CreateOpenAIImage(string name, string text2ImagePrompt, OpenAIImageModel model, SDKEnums.ImageQualityType quality, CancellationToken ct = default)
     {
         try
         {
@@ -98,6 +100,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
             logger.LogInformation("Starting OpenAI image generation for: {Name}", name);
             ImageGenerationOptions op = new()
             {
+
                 Quality = model == OpenAIImageModel.GPTImage1 || model == OpenAIImageModel.GPTImage15
                     ? new GeneratedImageQuality(quality.ToString().ToLower())
                     : new GeneratedImageQuality("hd"),
@@ -107,6 +110,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
                     : new GeneratedImageSize(1792, 1024)
             };
 
+            ct.ThrowIfCancellationRequested();
             var res = await client.GenerateImageAsync(text2ImagePrompt, op);
 
             ImageModel imgModel = null!;
@@ -144,6 +148,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
 
     public async Task<ImageModel?> CreateOpenAIImageByRefrence(string name, string text2ImagePrompt, 
         OpenAIImageModel model, SDKEnums.ImageQualityType quality, 
+        CancellationToken ct = default,
         params (string Name, ImageModel Image)[] imagesData)
     {
         try
@@ -180,6 +185,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
 
             BC bc = new(content);
             logger.LogInformation("Starting OpenAI image generation for: {Name}", name);
+            ct.ThrowIfCancellationRequested();
             //var res = c.GenerateImageEdit(name, text2ImagePrompt);
             var result = await client.GenerateImageEditsAsync(bc, content.Headers.ContentType.ToString());
 #pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.

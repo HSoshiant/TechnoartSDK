@@ -26,6 +26,9 @@ public enum OperationProgressType
     /// <summary>The operation completed successfully.</summary>
     Completed,
 
+    /// <summary>The operation was cancelled by the user.</summary>
+    Cancelled,
+
     /// <summary>The operation failed.</summary>
     Failed
 }

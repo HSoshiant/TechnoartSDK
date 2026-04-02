@@ -30,7 +30,8 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
         Func<T, List<string>> checkErrors = null!,
         string terminationText = "Approved",
         JsonElement? responseSchema = null,
-        IProgress<OperationProgress>? progress = null) where T : class
+        IProgress<OperationProgress>? progress = null,
+        CancellationToken ct = default) where T : class
     {
         logger.LogInformation("Generating writer review for {OperationName} with \"{WriterService}\" as writer and \"{ReviewerService}\" as reviewer",
             operationName, writerServiceName, reviewerServiceName);
@@ -110,7 +111,7 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
             buffer.Clear();
 
             // Stream token-by-token from the agent group chat
-            await foreach (var chunk in chat.InvokeStreamingAsync())
+            await foreach (var chunk in chat.InvokeStreamingAsync(ct))
             {
                 // Agent switch — flush previous, signal new
                 if (chunk.AuthorName != currentAuthor)
@@ -157,6 +158,7 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
 
             var errorsStr = string.Join("\n", errors!);
             logger.LogInformation("{OperationName}: invalid result: {Errors}", operationName, errorsStr);
+            ct.ThrowIfCancellationRequested();
             progress?.Report(new OperationProgress
             {
                 Type = OperationProgressType.Warning,
