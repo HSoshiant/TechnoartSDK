@@ -43,7 +43,7 @@ public class OperationProgress
     public OperationProgressType Type { get; init; }
 
     /// <summary>Human-readable name of the current step (e.g. "Writer", "Reviewer", "ImageGeneration", "VideoDownload").</summary>
-    public string StepName { get; init; } = string.Empty;
+    public string Subject { get; init; } = string.Empty;
 
     /// <summary>Full content produced by the step, if any (e.g. writer's draft, reviewer's critique, error message).</summary>
     public string? Content { get; init; }

@@ -74,7 +74,7 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
             progress?.Report(new OperationProgress
             {
                 Type = OperationProgressType.StepCompleted,
-                StepName = currentAuthor,
+                Subject = currentAuthor,
                 Content = content
             });
         }
@@ -85,7 +85,7 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
         progress?.Report(new OperationProgress
         {
             Type = OperationProgressType.Started,
-            StepName = operationName
+            Subject = operationName
         });
 
         while (true)
@@ -122,7 +122,7 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
                     progress?.Report(new OperationProgress
                     {
                         Type = OperationProgressType.StepStarted,
-                        StepName = currentAuthor ?? operationName
+                        Subject = currentAuthor ?? operationName
                     });
                 }
 
@@ -132,7 +132,7 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
                     progress?.Report(new OperationProgress
                     {
                         Type = OperationProgressType.Info,
-                        StepName = currentAuthor ?? operationName,
+                        Subject = currentAuthor ?? operationName,
                         Content = text
                     });
                 }
@@ -151,7 +151,7 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
                 progress?.Report(new OperationProgress
                 {
                     Type = OperationProgressType.Completed,
-                    StepName = operationName
+                    Subject = operationName
                 });
                 return response!;
             }
@@ -162,7 +162,7 @@ public class WriterReviewerAIAgents(Kernel kernel, ILogger logger)
             progress?.Report(new OperationProgress
             {
                 Type = OperationProgressType.Warning,
-                StepName = operationName,
+                Subject = operationName,
                 Content = errorsStr
             });
             extraMessages.Add(new ChatMessageContent(AuthorRole.User, errorsStr));
