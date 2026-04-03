@@ -1,10 +1,11 @@
-﻿using System.ClientModel;
+﻿using Google.GenAI;
+using Google.GenAI.Types;
+using Microsoft.Extensions.Logging;
+using OpenAI.Images;
+using System.Buffers.Text;
+using System.ClientModel;
 using System.ComponentModel;
 using System.Net.Http.Headers;
-using Microsoft.Extensions.Logging;
-using Mscc.GenerativeAI;
-using Mscc.GenerativeAI.Types;
-using OpenAI.Images;
 using TechnoartSDK.Extensions;
 using TechnoartSDK.Models;
 
@@ -12,20 +13,52 @@ namespace TechnoartSDK.AI.AIAgents;
 
 public class AIImageGenerator(ILogger<AIImageGenerator> logger)
 {
+    public enum ImageAspectRatio
+    {
+        [Description("1:1")]
+        Square,
+        [Description("4:3")]
+        Landscape,
+        [Description("3:4")]
+        Portrait,
+        [Description("16:9")]
+        Widescreen,
+        [Description("9:16")]
+        PortraitTall
+    }
+
     public async Task<ImageModel?> CreateImagen(string name, string text2ImagePrompt, ImageAspectRatio aspectRatio, CancellationToken ct = default)
     {
         logger.LogInformation("Starting image generation for character: {Name}", name);
 
-        var googleAI = new GoogleAI(apiKey: AIServicesExtensions.GoogleApiKey);
+        //var googleAI = new GoogleAI(apiKey: AIServicesExtensions.GoogleApiKey);
+        var googleAI = new Client(apiKey: AIServicesExtensions.GoogleApiKey);
+        var generateImagesConfig = new GenerateImagesConfig
+        {
+            NumberOfImages = 1,
+            AspectRatio = aspectRatio.ToDescriptionString(),
+            SafetyFilterLevel = SafetyFilterLevel.BlockLowAndAbove,
+            PersonGeneration = PersonGeneration.AllowAll,
+            IncludeSafetyAttributes = false,
+            IncludeRaiReason = false,
+            OutputMimeType = "image/jpeg",
+        };
         //var vertextAI = new VertexAI(apiKey: _APIKEY);
 
-        var vModel = googleAI.GenerativeModel(model: Model.Imagen3);
+        //var vModel = googleAI.GenerativeModel(model: Model.Imagen4);
         ct.ThrowIfCancellationRequested();
-        var res = await vModel.GenerateImages(text2ImagePrompt, aspectRatio: aspectRatio, personGeneration: PersonGeneration.AllowAll);
         try
         {
-            var img = res.Images.FirstOrDefault();
-            return img != null ? new ImageModel { Data = img.BytesBase64Encoded!, MimeType = img.MimeType! } : null;
+            var response = await googleAI.Models.GenerateImagesAsync(
+              model: "imagen-4.0-generate-001",
+              prompt: text2ImagePrompt,
+              config: generateImagesConfig
+            );
+            // Do something with the generated image
+            var image = response.GeneratedImages?.FirstOrDefault()?.Image;
+            //var res = await vModel.GenerateImages(text2ImagePrompt, aspectRatio: aspectRatio, personGeneration: PersonGeneration.AllowAll);
+            //var img = res.Images.FirstOrDefault();
+            return image != null ? new ImageModel { Data = Convert.ToBase64String(image.ImageBytes!), MimeType = image.MimeType! } : null;
         }
         catch (Exception ex)
         {
@@ -37,44 +70,45 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
 
     public async Task<string?> CreateGeminiImage(string name, string text2ImagePrompt, string aspectRatio, CancellationToken ct = default, params string[] imagesData)
     {
-        logger.LogInformation("Starting Gemini image generation for: {Name}", name);
-        var googleAI = new GoogleAI(apiKey: AIServicesExtensions.GoogleApiKey);
-        var vModel = googleAI.GenerativeModel(model: Model.Gemini25FlashImage);
+//        logger.LogInformation("Starting Gemini image generation for: {Name}", name);
+//        var googleAI = new GoogleAI(apiKey: AIServicesExtensions.GoogleApiKey);
+//        var vModel = googleAI.GenerativeModel(model: Model.Gemini25FlashImage);
 
-        var parts = new List<IPart>(){
-            new TextData
-            {
-                Text = @$"DRAW :
-{text2ImagePrompt}
-" } };
-        if (imagesData is not null && imagesData.Length > 0)
-        {
-            parts.AddRange(imagesData.Select(img => new InlineData
-            {
-                MimeType = "image/png",
-                Data = img
-            }));
-        }
-        ct.ThrowIfCancellationRequested();
-        var res = await vModel.GenerateContent(
-            parts
-            , new()
-            {
-                ResponseModalities = [ResponseModality.Image, ResponseModality.Text],
-            });
-        try
-        {
-            var imgData = res.Candidates!.First().
-                Content!.Parts.First(p => p.InlineData is not null)
-                .InlineData.Data;
+//        var parts = new List<IPart>(){
+//            new TextData
+//            {
+//                Text = @$"DRAW :
+//{text2ImagePrompt}
+//" } };
+//        if (imagesData is not null && imagesData.Length > 0)
+//        {
+//            parts.AddRange(imagesData.Select(img => new InlineData
+//            {
+//                MimeType = "image/png",
+//                Data = img
+//            }));
+//        }
+//        ct.ThrowIfCancellationRequested();
+//        var res = await vModel.GenerateContent(
+//            parts
+//            , new()
+//            {
+//                ResponseModalities = [ResponseModality.Image, ResponseModality.Text],
+//            });
+//        try
+//        {
+//            var imgData = res.Candidates!.First().
+//                Content!.Parts.First(p => p.InlineData is not null)
+//                .InlineData.Data;
 
-            return imgData;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, $"Error in creating Gemini image for \"{name}\": {ex.Message}");
-            return null;
-        }
+//            return imgData;
+//        }
+//        catch (Exception ex)
+//        {
+//            logger.LogError(ex, $"Error in creating Gemini image for \"{name}\": {ex.Message}");
+//            return null;
+//        }
+return null;
     }
 
     #region OpenAI Image Generation
@@ -146,8 +180,8 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
         return null;
     }
 
-    public async Task<ImageModel?> CreateOpenAIImageByRefrence(string name, string text2ImagePrompt, 
-        OpenAIImageModel model, SDKEnums.ImageQualityType quality, 
+    public async Task<ImageModel?> CreateOpenAIImageByRefrence(string name, string text2ImagePrompt,
+        OpenAIImageModel model, SDKEnums.ImageQualityType quality,
         CancellationToken ct = default,
         params (string Name, ImageModel Image)[] imagesData)
     {
@@ -189,7 +223,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
             //var res = c.GenerateImageEdit(name, text2ImagePrompt);
             var result = await client.GenerateImageEditsAsync(bc, content.Headers.ContentType.ToString());
 #pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-            OpenAI.Images.GeneratedImage img = ((GeneratedImageCollection) result).FirstOrDefault();
+            OpenAI.Images.GeneratedImage img = ((GeneratedImageCollection)result).FirstOrDefault();
 #pragma warning restore OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             var imgModel = new ImageModel
             {
@@ -226,7 +260,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
 
 }
 
-public class BC(MultipartFormDataContent multipartForm) :BinaryContent
+public class BC(MultipartFormDataContent multipartForm) : BinaryContent
 {
     public override void Dispose()
     {
