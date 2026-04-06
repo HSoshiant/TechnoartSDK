@@ -36,10 +36,4 @@ public record UserModel : RepositoryModel
     /// </summary>
     [JsonProperty("pictureUrl")]
     public string PictureUrl { get; set; } = string.Empty;
-
-    /// <summary>
-    /// UTC timestamp when the user record was first created.
-    /// </summary>
-    [JsonProperty("createdAt")]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
