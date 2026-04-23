@@ -13,10 +13,10 @@ public sealed class TeeStream(Stream inner, Action<string> onDisposed) : Stream
 
     private readonly MemoryStream _buffer = new();
 
-    public override bool CanRead  => inner.CanRead;
-    public override bool CanSeek  => false;
+    public override bool CanRead => inner.CanRead;
+    public override bool CanSeek => false;
     public override bool CanWrite => false;
-    public override long Length   => throw new NotSupportedException();
+    public override long Length => throw new NotSupportedException();
     public override long Position
     {
         get => throw new NotSupportedException();
@@ -52,7 +52,7 @@ public sealed class TeeStream(Stream inner, Action<string> onDisposed) : Stream
 
     public override void Flush() => inner.Flush();
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
-    public override void SetLength(long value)                 => throw new NotSupportedException();
+    public override void SetLength(long value) => throw new NotSupportedException();
     public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
     protected override void Dispose(bool disposing)

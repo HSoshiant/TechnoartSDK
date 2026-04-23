@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace TechnoartSDK.HTTP;
 
-public class RequestBodyLoggingMiddleware(ILogger<RequestBodyLoggingMiddleware> logger) :IMiddleware
+public class RequestBodyLoggingMiddleware(ILogger<RequestBodyLoggingMiddleware> logger) : IMiddleware
 {
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {

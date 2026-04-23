@@ -9,7 +9,7 @@ public enum AuthenticationRequiredReason
     /// <summary>
     /// The user is not authenticated. This can occur if the user tries to access a protected resource without signing in.
     /// </summary>
-    NotAuthenticated    
+    NotAuthenticated
 }
 /// <summary>
 /// Thrown when the downstream API returns 401 or 403, indicating the caller must re-authenticate.

@@ -14,7 +14,7 @@ public static class AIServicesExtensions
     public const string OpenAIService = nameof(OpenAIService);
     public const string OpenAIServiceMini = nameof(OpenAIServiceMini);
     public const string GoogleAIService = nameof(GoogleAIService);
-    public const string GoogleAIServicePro = nameof(GoogleAIServicePro);        
+    public const string GoogleAIServicePro = nameof(GoogleAIServicePro);
     public const string OpenApiKey = "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";
     public const string GoogleApiKey = "AIzaSyAmMPi7ZpBLACqc2MGzuFr2YCOQXVEzRb8";
 

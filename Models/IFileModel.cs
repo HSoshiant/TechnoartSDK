@@ -3,5 +3,5 @@
 public interface IFileModel
 {
     public void ReadFrom(Stream stream);
-    public void WriteTo(Stream stream); 
+    public void WriteTo(Stream stream);
 }

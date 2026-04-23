@@ -1,6 +1,6 @@
 ﻿namespace TechnoartSDK.Models;
 
-public record ImageModel :RepositoryModel, IFileModel
+public record ImageModel : RepositoryModel, IFileModel
 {
     public string Data { get; set; }
     public string MimeType { get; set; } = "image/png";
