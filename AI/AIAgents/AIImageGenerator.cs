@@ -70,45 +70,45 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
 
     public async Task<string?> CreateGeminiImage(string name, string text2ImagePrompt, string aspectRatio, CancellationToken ct = default, params string[] imagesData)
     {
-//        logger.LogInformation("Starting Gemini image generation for: {Name}", name);
-//        var googleAI = new GoogleAI(apiKey: AIServicesExtensions.GoogleApiKey);
-//        var vModel = googleAI.GenerativeModel(model: Model.Gemini25FlashImage);
+        //        logger.LogInformation("Starting Gemini image generation for: {Name}", name);
+        //        var googleAI = new GoogleAI(apiKey: AIServicesExtensions.GoogleApiKey);
+        //        var vModel = googleAI.GenerativeModel(model: Model.Gemini25FlashImage);
 
-//        var parts = new List<IPart>(){
-//            new TextData
-//            {
-//                Text = @$"DRAW :
-//{text2ImagePrompt}
-//" } };
-//        if (imagesData is not null && imagesData.Length > 0)
-//        {
-//            parts.AddRange(imagesData.Select(img => new InlineData
-//            {
-//                MimeType = "image/png",
-//                Data = img
-//            }));
-//        }
-//        ct.ThrowIfCancellationRequested();
-//        var res = await vModel.GenerateContent(
-//            parts
-//            , new()
-//            {
-//                ResponseModalities = [ResponseModality.Image, ResponseModality.Text],
-//            });
-//        try
-//        {
-//            var imgData = res.Candidates!.First().
-//                Content!.Parts.First(p => p.InlineData is not null)
-//                .InlineData.Data;
+        //        var parts = new List<IPart>(){
+        //            new TextData
+        //            {
+        //                Text = @$"DRAW :
+        //{text2ImagePrompt}
+        //" } };
+        //        if (imagesData is not null && imagesData.Length > 0)
+        //        {
+        //            parts.AddRange(imagesData.Select(img => new InlineData
+        //            {
+        //                MimeType = "image/png",
+        //                Data = img
+        //            }));
+        //        }
+        //        ct.ThrowIfCancellationRequested();
+        //        var res = await vModel.GenerateContent(
+        //            parts
+        //            , new()
+        //            {
+        //                ResponseModalities = [ResponseModality.Image, ResponseModality.Text],
+        //            });
+        //        try
+        //        {
+        //            var imgData = res.Candidates!.First().
+        //                Content!.Parts.First(p => p.InlineData is not null)
+        //                .InlineData.Data;
 
-//            return imgData;
-//        }
-//        catch (Exception ex)
-//        {
-//            logger.LogError(ex, $"Error in creating Gemini image for \"{name}\": {ex.Message}");
-//            return null;
-//        }
-return null;
+        //            return imgData;
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            logger.LogError(ex, $"Error in creating Gemini image for \"{name}\": {ex.Message}");
+        //            return null;
+        //        }
+        return null;
     }
 
     #region OpenAI Image Generation
