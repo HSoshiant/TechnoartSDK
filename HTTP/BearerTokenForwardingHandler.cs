@@ -25,13 +25,10 @@ public class BearerTokenForwardingHandler(
 {
     #region Fields
 
-    // Regenerate the token when it has less than this much time remaining
-    private static readonly TimeSpan RefreshThreshold = TimeSpan.FromHours(1);
-
-    private static readonly JwtSecurityTokenHandler TokenHandler = new();
-
     // Key used to cache the refreshed token in HttpContext.Items for the circuit's lifetime
     private const string CachedTokenKey = "BearerTokenForwarding.CachedApiToken";
+
+    private static readonly JwtSecurityTokenHandler TokenHandler = new();
 
     #endregion Fields
 
@@ -78,7 +75,7 @@ public class BearerTokenForwardingHandler(
         try
         {
             var jwt = TokenHandler.ReadJwtToken(token);
-            return jwt.ValidTo <= DateTime.UtcNow.Add(RefreshThreshold);
+            return jwt.ValidTo <= DateTime.UtcNow.Add(TimeSpan.FromHours(authOptions.Value.TokenRefreshThresholdHours));
         }
         catch
         {
@@ -109,7 +106,8 @@ public class BearerTokenForwardingHandler(
                 return null;
             }
 
-            var newToken = AuthExtensions.GenerateApiToken(user.Claims, signingKey);
+            var newToken = AuthExtensions.GenerateApiToken(user.Claims, signingKey,
+                TimeSpan.FromHours(authOptions.Value.TokenExpiryHours));
 
             // Cache in HttpContext.Items — lives for the Blazor circuit's lifetime
             httpContext.Items[CachedTokenKey] = newToken;

@@ -1,6 +1,7 @@
 ﻿using Google.GenAI;
 using Google.GenAI.Types;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OpenAI.Images;
 using System.Buffers.Text;
 using System.ClientModel;
@@ -11,7 +12,7 @@ using TechnoartSDK.Models;
 
 namespace TechnoartSDK.AI.AIAgents;
 
-public class AIImageGenerator(ILogger<AIImageGenerator> logger)
+public class AIImageGenerator(ILogger<AIImageGenerator> logger, IOptions<AIServicesConfig> aiServicesConfig)
 {
     public enum ImageAspectRatio
     {
@@ -31,8 +32,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
     {
         logger.LogInformation("Starting image generation for character: {Name}", name);
 
-        //var googleAI = new GoogleAI(apiKey: AIServicesExtensions.GoogleApiKey);
-        var googleAI = new Client(apiKey: AIServicesExtensions.GoogleApiKey);
+        var googleAI = new Client(apiKey: aiServicesConfig.Value.GoogleApiKey);
         var generateImagesConfig = new GenerateImagesConfig
         {
             NumberOfImages = 1,
@@ -50,7 +50,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
         try
         {
             var response = await googleAI.Models.GenerateImagesAsync(
-              model: "imagen-4.0-generate-001",
+              model: aiServicesConfig.Value.ImagenModel,
               prompt: text2ImagePrompt,
               config: generateImagesConfig
             );
@@ -71,7 +71,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
     public async Task<string?> CreateGeminiImage(string name, string text2ImagePrompt, string aspectRatio, CancellationToken ct = default, params string[] imagesData)
     {
         //        logger.LogInformation("Starting Gemini image generation for: {Name}", name);
-        //        var googleAI = new GoogleAI(apiKey: AIServicesExtensions.GoogleApiKey);
+        //        var googleAI = new GoogleAI(apiKey: aiServicesConfig.Value.GoogleApiKey);
         //        var vModel = googleAI.GenerativeModel(model: Model.Gemini25FlashImage);
 
         //        var parts = new List<IPart>(){
@@ -129,7 +129,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
         try
         {
             var modelName = model.ToDescriptionString();
-            ImageClient client = new(modelName, AIServicesExtensions.OpenApiKey);
+            ImageClient client = new(modelName, aiServicesConfig.Value.OpenAIApiKey);
 
             logger.LogInformation("Starting OpenAI image generation for: {Name}", name);
             ImageGenerationOptions op = new()
@@ -190,7 +190,7 @@ public class AIImageGenerator(ILogger<AIImageGenerator> logger)
             ImageClient client;
             MultipartFormDataContent content = new(CreateBoundary());
             var modelName = model.ToDescriptionString();
-            client = new(modelName, AIServicesExtensions.OpenApiKey);
+            client = new(modelName, aiServicesConfig.Value.OpenAIApiKey);
             content.Add(new StringContent(modelName), "model");
 
             content.Add(model == OpenAIImageModel.GPTImage1 || model == OpenAIImageModel.GPTImage15
