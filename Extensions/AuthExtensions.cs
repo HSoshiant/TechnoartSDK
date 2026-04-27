@@ -73,7 +73,7 @@ public static class AuthExtensions
 
         foreach (var provider in authOptions.Providers)
         {
-            RegisterProvider(authBuilder, provider, authOptions.TokenSigningKey);
+            RegisterProvider(authBuilder, provider, authOptions.TokenSigningKey, authOptions.TokenExpiryHours);
         }
 
         services.AddAuthorization();
@@ -159,7 +159,7 @@ public static class AuthExtensions
     /// authentication properties for downstream API forwarding.
     /// </summary>
     private static void RegisterProvider(
-        AuthenticationBuilder builder, AuthProviderConfig provider, string signingKey)
+        AuthenticationBuilder builder, AuthProviderConfig provider, string signingKey, int tokenExpiryHours)
     {
         switch (provider.Name.ToLowerInvariant())
         {
@@ -171,7 +171,7 @@ public static class AuthExtensions
                     options.SaveTokens = true;
                     options.CallbackPath = AuthClaimsConstants.GoogleCallbackPath;
                     options.ClaimActions.MapJsonKey(AuthClaimsConstants.Picture, AuthClaimsConstants.Picture);
-                    AttachTokenGeneration(options.Events, provider.Name, signingKey);
+                    AttachTokenGeneration(options.Events, provider.Name, signingKey, tokenExpiryHours);
                 });
                 break;
 
@@ -182,7 +182,7 @@ public static class AuthExtensions
                     options.ClientSecret = provider.ClientSecret;
                     options.SaveTokens = true;
                     options.CallbackPath = AuthClaimsConstants.MicrosoftCallbackPath;
-                    AttachTokenGeneration(options.Events, provider.Name, signingKey);
+                    AttachTokenGeneration(options.Events, provider.Name, signingKey, tokenExpiryHours);
                 });
                 break;
 
@@ -195,7 +195,7 @@ public static class AuthExtensions
                     options.CallbackPath = AuthClaimsConstants.GitHubCallbackPath;
                     // GitHub returns avatar_url in the user info JSON — map it to the shared "picture" claim
                     options.ClaimActions.MapJsonKey(AuthClaimsConstants.Picture, "avatar_url");
-                    AttachTokenGeneration(options.Events, provider.Name, signingKey);
+                    AttachTokenGeneration(options.Events, provider.Name, signingKey, tokenExpiryHours);
                 });
                 break;
 
@@ -213,7 +213,7 @@ public static class AuthExtensions
     /// <see cref="BearerTokenForwardingHandler"/> can read it.
     /// </summary>
     private static void AttachTokenGeneration(
-        Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents events, string providerName, string signingKey)
+        Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents events, string providerName, string signingKey, int tokenExpiryHours)
     {
         events.OnTicketReceived = ctx =>
         {
@@ -227,7 +227,8 @@ public static class AuthExtensions
             }
 
             // Generate a self-issued JWT with the user's claims for API forwarding
-            var apiToken = GenerateApiToken(ctx.Principal?.Claims ?? [], signingKey);
+            var apiToken = GenerateApiToken(ctx.Principal?.Claims ?? [], signingKey,
+                TimeSpan.FromHours(tokenExpiryHours));
 
             // Store as an authentication token alongside the provider's own tokens
             var tokens = ctx.Properties?.GetTokens().ToList() ?? [];

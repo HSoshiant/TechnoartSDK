@@ -1,12 +1,17 @@
 ﻿using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Google;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using TechnoartSDK.Models;
 
 namespace TechnoartSDK.Extensions;
 
+/// <summary>
+/// Registers Semantic Kernel AI chat completion services using <see cref="AIServicesConfig"/>.
+/// </summary>
 public static class AIServicesExtensions
 {
     #region Static Fields
@@ -15,51 +20,58 @@ public static class AIServicesExtensions
     public const string OpenAIServiceMini = nameof(OpenAIServiceMini);
     public const string GoogleAIService = nameof(GoogleAIService);
     public const string GoogleAIServicePro = nameof(GoogleAIServicePro);
-    public const string OpenApiKey = "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";
-    public const string GoogleApiKey = "AIzaSyAmMPi7ZpBLACqc2MGzuFr2YCOQXVEzRb8";
 
     #endregion Static Fields
 
     #region Static Methods
 
+    /// <summary>
+    /// Registers keyed <see cref="IChatCompletionService"/> instances and a <see cref="Kernel"/> singleton.
+    /// Reads model names and API keys from <see cref="IOptions{AIServicesConfig}"/>.
+    /// </summary>
     public static IServiceCollection AddSemanticKernel(this IServiceCollection services)
     {
-#pragma warning disable SKEXP0070
+#pragma warning disable SKEXP0070 // Google AI connector is experimental
         services.AddKeyedSingleton<IChatCompletionService>(OpenAIService, (sp, _) =>
-            new OpenAIChatCompletionService(
-                //"gpt-4.1-mini-2025-04-14",
-                "gpt-5.2",
-                OpenApiKey,
-                httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService")));
+        {
+            var cfg = sp.GetRequiredService<IOptions<AIServicesConfig>>().Value;
+            return new OpenAIChatCompletionService(
+                cfg.OpenAIModel,
+                cfg.OpenAIApiKey,
+                httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService"));
+        });
 
         services.AddKeyedSingleton<IChatCompletionService>(OpenAIServiceMini, (sp, _) =>
-            new OpenAIChatCompletionService(
-                //"gpt-4.1-mini-2025-04-14",
-                "gpt-5-mini",
-                OpenApiKey,
-                httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService")));
+        {
+            var cfg = sp.GetRequiredService<IOptions<AIServicesConfig>>().Value;
+            return new OpenAIChatCompletionService(
+                cfg.OpenAIMiniModel,
+                cfg.OpenAIApiKey,
+                httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService"));
+        });
 
         services.AddKeyedSingleton<IChatCompletionService>(GoogleAIService, (sp, _) =>
-            new GoogleAIGeminiChatCompletionService(
-                "gemini-3-flash-preview",
-                apiKey: GoogleApiKey,
+        {
+            var cfg = sp.GetRequiredService<IOptions<AIServicesConfig>>().Value;
+            return new GoogleAIGeminiChatCompletionService(
+                cfg.GoogleAIModel,
+                apiKey: cfg.GoogleApiKey,
                 apiVersion: GoogleAIVersion.V1_Beta,
-                httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService")));
+                httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService"));
+        });
 
         services.AddKeyedSingleton<IChatCompletionService>(GoogleAIServicePro, (sp, _) =>
-            new GoogleAIGeminiChatCompletionService(
-                "gemini-3-pro-preview",
-                apiKey: GoogleApiKey,
+        {
+            var cfg = sp.GetRequiredService<IOptions<AIServicesConfig>>().Value;
+            return new GoogleAIGeminiChatCompletionService(
+                cfg.GoogleAIProModel,
+                apiKey: cfg.GoogleApiKey,
                 apiVersion: GoogleAIVersion.V1_Beta,
-                httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService")));
+                httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService"));
+        });
+#pragma warning restore SKEXP0070
 
-        //services.AddSingleton<ImageClient>(sp=>new()
-        services
-            .AddSingleton(sp => new Kernel(sp));
-
-        //services.AddSingleton<IGeminiClient>(sp => new Common.GoogleGeminiClient(
-        //    sp.GetRequiredService<IHttpClientFactory>().CreateClient("ChatCompletionService"), googleApiKey));
-        //services.AddSingleton<OpenAIClient>(sp => new(openApiKey));
+        services.AddSingleton(sp => new Kernel(sp));
 
         return services;
     }

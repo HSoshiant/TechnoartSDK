@@ -1,23 +1,33 @@
-﻿using OpenAI.Audio;
-using TechnoartSDK.Extensions;
+﻿using Microsoft.Extensions.Options;
+using OpenAI.Audio;
+using TechnoartSDK.Models;
 
 namespace TechnoartSDK.AI.AIAgents;
 
-public class AIVoiceAnalyzer
+/// <summary>
+/// Transcribes audio using OpenAI Whisper, reading keys and model from <see cref="AIServicesConfig"/>.
+/// </summary>
+public class AIVoiceAnalyzer(IOptions<AIServicesConfig> aiServicesConfig)
 {
-    public static async Task<AudioTranscription> Transcribe(string audioPath)
+    #region Methods
+
+    /// <summary>
+    /// Transcribes the audio file at the given path using the configured Whisper model.
+    /// </summary>
+    public async Task<AudioTranscription> Transcribe(string audioPath)
     {
+        var cfg = aiServicesConfig.Value;
         AudioClient client = new(
-            model: "whisper-1",
-            apiKey: AIServicesExtensions.OpenApiKey
+            model: cfg.WhisperModel,
+            apiKey: cfg.OpenAIApiKey
         );
         AudioTranscription transcription = await client.TranscribeAudioAsync(audioPath, new()
         {
-            //Includes = AudioTranscriptionIncludes.Default,
             TimestampGranularities = AudioTimestampGranularities.Word,
             ResponseFormat = AudioTranscriptionFormat.Verbose
-
         });
         return transcription;
     }
+
+    #endregion Methods
 }
