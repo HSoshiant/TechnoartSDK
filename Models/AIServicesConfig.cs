@@ -9,6 +9,23 @@ namespace TechnoartSDK.Models;
 public class AIServicesConfig
 {
     public const string SectionName = "AIServices";
+    public const string DefaultImageService = "Gemini";
+    public const string DefaultImageModel = "gemini-nano-banana-2.1";
+
+    /// <summary>Shared image provider, independent of the chat and review models.</summary>
+    [Required, RegularExpression("OpenAI|Gemini")]
+    public string ImageService { get; set; } = DefaultImageService;
+
+    /// <summary>Image model ID sent unchanged to the selected provider.</summary>
+    [Required]
+    public string ImageModel { get; set; } = DefaultImageModel;
+
+    /// <summary>OpenAI image transport. Responses is opt-in; explicit legacy image methods always use Images.</summary>
+    [Required, RegularExpression("Images|Responses")]
+    public string OpenAIImageTransport { get; set; } = "Images";
+
+    /// <summary>Explicit supported dispatcher model required only for configured OpenAI Responses image generation.</summary>
+    public string? OpenAIImageResponsesModel { get; set; }
 
     /// <summary>OpenAI API key for chat, image, and audio services.</summary>
     [Required]

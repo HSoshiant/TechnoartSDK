@@ -10,6 +10,44 @@ namespace TechnoartSDK.Utils;
 public static class ImageUtils
 {
     /// <summary>
+    /// Produces a PNG at the exact positive pixel dimensions by scaling uniformly
+    /// and cropping equally from opposite edges, without stretching or padding.
+    /// </summary>
+    public static byte[] ResizeExact(byte[] imageBytes, int width, int height)
+    {
+        ArgumentNullException.ThrowIfNull(imageBytes);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+
+        using var inputStream = new MemoryStream(imageBytes);
+        using var originalImage = Image.FromStream(inputStream);
+
+        // Crop in source coordinates so the destination is filled with one uniform scale.
+        double scale = Math.Max((double)width / originalImage.Width, (double)height / originalImage.Height);
+        float sourceWidth = (float)(width / scale);
+        float sourceHeight = (float)(height / scale);
+        float sourceX = (originalImage.Width - sourceWidth) / 2;
+        float sourceY = (originalImage.Height - sourceHeight) / 2;
+
+        using var resizedImage = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+        using var graphics = Graphics.FromImage(resizedImage);
+        graphics.CompositingMode = CompositingMode.SourceCopy;
+        graphics.CompositingQuality = CompositingQuality.HighQuality;
+        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+        graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+        // Mirror edge samples to avoid translucent borders from bicubic interpolation.
+        using var imageAttributes = new ImageAttributes();
+        imageAttributes.SetWrapMode(WrapMode.TileFlipXY);
+        graphics.DrawImage(originalImage, new Rectangle(0, 0, width, height),
+            sourceX, sourceY, sourceWidth, sourceHeight, GraphicsUnit.Pixel, imageAttributes);
+
+        using var outputStream = new MemoryStream();
+        resizedImage.Save(outputStream, ImageFormat.Png);
+        return outputStream.ToArray();
+    }
+
+    /// <summary>
     /// Resizes raw image bytes, preserving aspect ratio.
     /// When <paramref name="ratio"/> is non-zero it scales by that factor;
     /// otherwise it fits within <paramref name="maxWidth"/> × <paramref name="maxHeight"/>.

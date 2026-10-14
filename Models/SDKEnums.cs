@@ -6,7 +6,8 @@ public static class SDKEnums
     {
         Low,
         Medium,
-        High
+        High,
+        XHigh
     }
 
 }

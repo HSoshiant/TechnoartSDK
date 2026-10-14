@@ -9,6 +9,8 @@ applyTo: "Models/**"
 | File | Class/Type | Purpose |
 |---|---|---|
 | `ImageModel.cs` | `ImageModel` | Represents a generated or stored image (URL, local path, metadata) |
+| `ImageGenerationMetadata.cs` | `ImageGenerationMetadata` | Requested models, reported generation identity, and separate dispatcher/image usage |
+| `ImageGenerationTokenUsage.cs` | `ImageGenerationTokenUsage` | Nullable reported token counts; unknown or unobservable values are never estimated |
 | `RepositoryModel.cs` | `RepositoryModel` | Base class for persisted entities |
 | `SDKEnums.cs` | `SDKEnums` | Shared enums used across projects (`ImageQualityType`) |
 | `IFileModel.cs` | `IFileModel` | Interface for models that reference a file on disk |
@@ -21,6 +23,7 @@ applyTo: "Models/**"
 - No business logic in model classes — pure data containers only.
 - No nested classes — every type gets its own file.
 - All public properties must have `/// <summary>` XML doc comments if their purpose is not immediately obvious from the name.
+- Keep `ImageModel.GenerationMetadata` optional for existing consumers and JSON payloads, and `NotMapped` so existing entity models gain no relationship or schema requirement. Preserve it when normalizing image data. Image cache-hit counts are not observable; dispatcher cache counts must not be reported as image-cache savings.
 
 ## Formatting
 
