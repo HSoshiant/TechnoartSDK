@@ -20,7 +20,7 @@ TechnoartSDK/
 | Namespace | Contents |
 |---|---|
 | `TechnoartSDK.AI` | `WriterReviewerAIAgents` |
-| `TechnoartSDK.AI.AIAgents` | `AIChatCompletion`, `AIImageGenerator`, `AIVoiceAnalyzer` |
+| `TechnoartSDK.AI.AIAgents` | `AIChatCompletion`, `AIImageGenerator`, `AIVoiceAnalyzer`, `AIWorkingContext`, `ContextSummaryService` |
 | `TechnoartSDK.HTTP` | `StreamSafeLoggingHandler`, `TeeStream`, `RequestBodyLoggingMiddleware`, `ResponseBodyLoggingMiddleware` |
 | `TechnoartSDK.Extensions` | `AIServicesExtensions`, `HttpResponseExtensions`, `EnumExtensions`, `StringExtensions` |
 | `TechnoartSDK.Models` | `ImageModel`, `RepositoryModel`, `SDKEnums` |

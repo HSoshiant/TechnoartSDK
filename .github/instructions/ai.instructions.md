@@ -12,6 +12,8 @@ applyTo: "AI/**"
 | `AIAgents/AIChatCompletion.cs` | `AIChatCompletion` | Thin wrapper for single-turn chat completions |
 | `AIAgents/AIImageGenerator.cs` | `AIImageGenerator` | JSON-selected Gemini/OpenAI images; retains explicit OpenAI and Google Imagen entry points |
 | `AIAgents/AIVoiceAnalyzer.cs` | `AIVoiceAnalyzer` | Voice/audio analysis utilities |
+| `AIAgents/AIWorkingContext.cs` | `AIWorkingContext` | Per-inference bounded working text, full-source paging/search, and safe tool/history compaction |
+| `AIAgents/ContextSummaryService.cs` | `ContextSummaryService` | Adapter from the standard SK history reducer to a caller-validated summary request |
 
 ## WriterReviewerAIAgents Pattern
 
@@ -40,6 +42,9 @@ var result = await wrAgents.GenerateWriterReviewAsync<T>(
 - Chat agents inject `Kernel` and `ILogger`. The image generator uses `ILogger`, `IOptions<AIServicesConfig>` and a caller-provided typed `HttpClient`.
 - SKEXP pragma suppressions are expected; always add a `//` comment explaining which experimental feature is being used.
 - No nested classes — every support type gets its own file.
+- `AIWorkingContext` is opt-in and per inference, never a singleton or shared across owners. Copy caller history before compacting; preserve system messages, images, tool-call/result pairs and exact originals. The 64 KiB UTF-8 working-text budget is conservative, not a claim of exact token counting or an image budget.
+- Summary requests use bounded excerpts and the caller's selected provider/model, without production tools. Fail explicitly on empty/oversized/incomplete summaries. Full originals remain searchable/pageable through `WorkingContext.Read`; summaries cannot authorize work or replace draft inspection. Do not replay tools or truncate original text to recover capacity.
+- Use request-unique source IDs and stable source-index snapshots. Native-compaction callers enable `retainUncompactedSources` and pass non-Kernel tool results/public messages through `Retain`, so even unsummarized originals remain readable. System messages stay inline and must not be exposed as read-tool data. The cache is inference-scoped memory; consuming applications own durable checkpoints.
 
 ## Configured image generation
 
